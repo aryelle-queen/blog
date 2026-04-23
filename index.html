@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revista Profissional</title>
+<style>
+body{margin:0;font-family:Georgia,serif;background:#0a0a0a;color:#eee}
+header{background:linear-gradient(90deg,#8b0000,#000);padding:2rem;text-align:center;border-bottom:3px solid red}
+header h1{margin:0;font-size:2.8rem}
+.container{max-width:1100px;margin:auto;padding:20px}
+.form{background:#111;padding:15px;margin-bottom:20px;border-left:5px solid red}
+input,textarea,select{width:100%;padding:10px;margin:5px 0;background:#222;color:#fff;border:none}
+button{background:red;color:#fff;border:none;padding:10px;cursor:pointer}
+#search{margin-bottom:20px}
+
+.featured img{width:100%;height:300px;object-fit:cover;filter:brightness(.6)}
+.featured-content{position:absolute;bottom:20px;left:20px}
+.featured{position:relative;margin-bottom:30px}
+
+#posts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.post{background:#111;cursor:pointer}
+.post img{width:100%;height:180px;object-fit:cover}
+.post-content{padding:10px}
+.category{background:red;padding:3px 6px;font-size:.7rem}
+
+/* Modal */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000c}
+.modal-content{background:#111;margin:5% auto;padding:20px;max-width:700px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>REVISTA DIGITAL</h1>
+</header>
+
+<div class="container">
+
+<input id="search" placeholder="Buscar..." onkeyup="renderPosts()">
+
+<div class="form">
+<input id="title" placeholder="Título">
+<textarea id="content" placeholder="Conteúdo"></textarea>
+<input id="image" placeholder="URL da imagem">
+<select id="category">
+<option>Tecnologia</option>
+<option>Opinião</option>
+<option>Notícia</option>
+</select>
+<button onclick="addPost()">Publicar</button>
+</div>
+
+<div id="featured"></div>
+<div id="posts"></div>
+
+</div>
+
+<div id="modal" class="modal" onclick="closeModal()">
+<div class="modal-content" onclick="event.stopPropagation()" id="modalContent"></div>
+</div>
+
+<script>
+let posts = JSON.parse(localStorage.getItem('posts')||'[]');
+
+function save(){localStorage.setItem('posts',JSON.stringify(posts))}
+
+function addPost(){
+const t=title.value,c=content.value,i=image.value,cat=category.value;
+if(!t||!c||!i)return alert('Preencha tudo');
+posts.unshift({t,c,i,cat,date:new Date().toLocaleDateString()});
+save();renderPosts();
+title.value='';content.value='';image.value='';
+}
+
+function renderPosts(){
+const q=search.value.toLowerCase();
+featured.innerHTML='';postsDiv='';
+let list=posts.filter(p=>p.t.toLowerCase().includes(q));
+
+if(list[0]){
+featured.innerHTML=`<div class="featured">
+<img src="${list[0].i}">
+<div class="featured-content">
+<span class="category">${list[0].cat}</span>
+<h2>${list[0].t}</h2>
+</div></div>`;
+}
+
+posts.innerHTML='';
+list.slice(1).forEach((p,i)=>{
+let div=document.createElement('div');
+div.className='post';
+div.onclick=()=>openPost(p);
+div.innerHTML=`
+<img src="${p.i}">
+<div class="post-content">
+<span class="category">${p.cat}</span>
+<h3>${p.t}</h3>
+<p>${p.c.substring(0,100)}...</p>
+</div>`;
+posts.appendChild(div);
+});
+}
+
+function openPost(p){
+modal.style.display='block';
+modalContent.innerHTML=`
+<h2>${p.t}</h2>
+<img src="${p.i}" style="width:100%">
+<p>${p.c}</p>
+<small>${p.date}</small>`;
+}
+
+function closeModal(){modal.style.display='none'}
+
+renderPosts();
+</script>
+
+</body>
+</html>
